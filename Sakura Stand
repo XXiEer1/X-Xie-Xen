@@ -1,3 +1,16 @@
+
+do
+    local AFKOld = game:GetService("CoreGui"):FindFirstChild("AFK")
+    local UIOld = game:GetService("CoreGui"):FindFirstChild("Rayfield")
+
+    if UIOld then
+        AFKOld:Destroy()
+        UIOld:Destroy()
+    end
+
+end
+
+
 local GuiService = game:GetService("GuiService")
 local RunService = game:GetService("RunService")
 
@@ -194,28 +207,35 @@ function BoxFarm()
     Callback = function(Value)
         _G.BoxFarms = Value
         while _G.BoxFarms do
-            task.wait(0.5)
+            task.wait(.5)
             if not _G.BoxFarms then return end -- หยุดทันทีถ้าเป็น false
 
             local Character, HumanoidRootPart = UpdateCharacter()
 
             for _, item in pairs(workspace.Item:GetChildren()) do
                 if not _G.BoxFarms then return end -- ตรวจสอบก่อน TP
-                if item:IsA("BasePart") then
+                if item:IsA("BasePart") and item.Name ~= "Chest" then
                     HumanoidRootPart.CFrame = item.CFrame * CFrame.new(0, 3, 0)
-                    task.wait(0.5)
-                    if not _G.BoxFarms then return end -- ตรวจสอบก่อนกดกล่อง
-
+                    task.wait(.5)
                     for i, v in pairs(item:GetDescendants()) do
                         if not _G.BoxFarms then return end
                         if v:IsA("ProximityPrompt") then
-                            v.HoldDuration = 0
-                            v:InputHoldBegin()
+                            if v.Enabled == true then
+                                    v.HoldDuration = 0
+                                    task.wait(.1)
+                                    v:InputHoldBegin()
+                                   --[[ spawn(function()
+                                        while task.wait(math.random(20,30)) do
+                                            pcall(function()
+                                                Character.Humanoid.Health = 0
+                                            end)
+                                        end
+                                    end)]]
+                                end
+                            end
                         end
                     end
-
-                    task.wait(0.3)
-                end
+                task.wait(math.random(1,2))
             end
         end
     end,
@@ -223,7 +243,7 @@ function BoxFarm()
 
 _G.AutoSell = false
 
-local ExcludedItems = {} -- เก็บไอเทมที่ไม่ต้องการขาย
+local ExcludedItems = {}
 
 local Toggle = Tab1:CreateToggle({
     Name = "ขายของ",
@@ -232,22 +252,25 @@ local Toggle = Tab1:CreateToggle({
     Callback = function(Value)
         _G.AutoSell = Value
 
-        if Value then
-            task.spawn(function() -- ใช้ task.spawn() ป้องกันการล็อกสคริปต์
-                while _G.AutoSell do
-                    task.wait()
+        task.spawn(function()
+            while _G.AutoSell do
+                task.wait(0.5)
+                
+                local Character, HumanoidRootPart = UpdateCharacter() -- อัปเดตตัวละครใหม่ทุกครั้ง
+                local Backpack = Player:FindFirstChild("Backpack")
 
-                    local Backpack = game.Players.LocalPlayer.Backpack
-                    for _, iteminback in pairs(Backpack:GetChildren()) do
-                        if iteminback:IsA("Tool") and not ExcludedItems[iteminback.Name] then
-                            game:GetService("ReplicatedStorage").GlobalUsedRemotes.SellItem:FireServer(iteminback.Name)
+                if Backpack then
+                    for _, item in pairs(Backpack:GetChildren()) do
+                        if not ExcludedItems[item.Name] then
+                            game:GetService("ReplicatedStorage").GlobalUsedRemotes.SellItem:FireServer(item.Name)
                         end
                     end
                 end
-            end)
-        end
+            end
+        end)
     end,
 })
+
 
 local Dropdown = Tab1:CreateDropdown({
     Name = "ยกเลิกการขาย",
@@ -259,6 +282,45 @@ local Dropdown = Tab1:CreateDropdown({
         ExcludedItems = {}
         for _, itemName in pairs(Options) do
             ExcludedItems[itemName] = true
+        end
+    end,
+})
+
+_G.AutoUp = false
+_G.AutoBg = false
+
+local Toggle = Tab1:CreateToggle({
+    Name = "UG",
+    CurrentValue = false,
+    Flag = "Toggle1",
+    Callback = function(Value)
+        _G.AutoUp = Value
+
+        if Value then
+            task.spawn(function() -- ใช้ task.spawn() ป้องกันการล็อกสคริปต์
+                while _G.AutoUp do
+                    task.wait()
+                    game:GetService("ReplicatedStorage").GlobalUsedRemotes.UpgradeMas:FireServer()
+                end
+            end)
+        end
+    end,
+})
+
+local Toggle = Tab1:CreateToggle({
+    Name = "UB",
+    CurrentValue = false,
+    Flag = "Toggle1",
+    Callback = function(Value)
+        _G.AutoBg = Value
+
+        if Value then
+            task.spawn(function() -- ใช้ task.spawn() ป้องกันการล็อกสคริปต์
+                while _G.AutoBg do
+                    task.wait()
+                    game:GetService("ReplicatedStorage").GlobalUsedRemotes.Breakthrough:FireServer()
+                end
+            end)
         end
     end,
 })
@@ -364,11 +426,6 @@ function Ui()
 
 
 end
-
-
-
-
-
 
 BoxFarm()
 AutoDead()
