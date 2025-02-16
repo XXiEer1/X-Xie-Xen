@@ -11,6 +11,7 @@ do
 end
 
 
+local Debris = game:GetService("Debris")
 local GuiService = game:GetService("GuiService")
 local RunService = game:GetService("RunService")
 
@@ -79,6 +80,7 @@ local Tab1 = Window:CreateTab("ตัวมึง", 4483362458)
 local Tab2 = Window:CreateTab("พิเศษ", 4483362458)
 local Tab3 = Window:CreateTab("เทเลพอร์ต", 4483362458)
 local Tab4 = Window:CreateTab("หน้าต่าง", 4483362458)
+local Tab5 = Window:CreateTab("อาร์เขต", 4483362458)
 
 function AntiAFK()
     wait(0.5)local ba=Instance.new("ScreenGui")
@@ -106,7 +108,7 @@ end
 
 AntiAFK()
 
-local AFK = game:GetService("CoreGui").AFK
+local AFK = game:GetService("CoreGui"):WaitForChild("AFK")
 
 AFK.Enabled = false
 
@@ -214,7 +216,7 @@ function BoxFarm()
 
             for _, item in pairs(workspace.Item:GetChildren()) do
                 if not _G.BoxFarms then return end -- ตรวจสอบก่อน TP
-                if item:IsA("BasePart") and item.Name ~= "Chest" then
+                if item:IsA("BasePart") then
                     HumanoidRootPart.CFrame = item.CFrame * CFrame.new(0, 3, 0)
                     task.wait(.5)
                     for i, v in pairs(item:GetDescendants()) do
@@ -228,6 +230,7 @@ function BoxFarm()
                                         while task.wait(math.random(20,30)) do
                                             pcall(function()
                                                 Character.Humanoid.Health = 0
+                                                
                                             end)
                                         end
                                     end)]]
@@ -324,6 +327,151 @@ local Toggle = Tab1:CreateToggle({
         end
     end,
 })
+
+_G.Notifying = false
+
+local Notify = workspace:FindFirstChild("NotifySound") or Instance.new("Sound", workspace)
+Notify.Name = "NotifySound"
+Notify.SoundId = "rbxassetid://1555493683"
+Notify.Volume = 1
+Notify.Looped = false
+
+local addedConnection, removedConnection
+local TrackedEntities = {}
+
+local Toggle = Tab1:CreateToggle({
+    Name = "แจ้งเตือน",
+    CurrentValue = false,
+    Flag = "Toggle1",
+    Callback = function(Value)
+        _G.Notifying = Value
+
+        if Value then
+            local LivingFolder = workspace:FindFirstChild("Living")
+            if not LivingFolder then
+                warn("⚠️ ไม่พบ workspace.Living")
+                return
+            end
+    
+            local function UpdateEntities()
+                local currentEntities = {}
+                local newSpawned = {}
+    
+                for _, v in pairs(LivingFolder:GetChildren()) do
+                    if v:IsA("Model") and v:FindFirstChild("Humanoid") then
+                        currentEntities[v] = true
+                        if not TrackedEntities[v] then
+                            table.insert(newSpawned, v.Name)
+                        end
+                    end
+                end
+    
+                for _, entityName in ipairs(newSpawned) do
+                    Rayfield:Notify({
+                        Title = "แจ้งเตือนการเกิด",
+                        Content = entityName,
+                        Duration = 5,
+                        Image = 4483362458,
+                    })
+                    Notify.TimePosition = 0
+                    Notify:Play()
+                end
+    
+                TrackedEntities = currentEntities
+            end
+    
+            UpdateEntities()
+            addedConnection = LivingFolder.ChildAdded:Connect(UpdateEntities)
+            removedConnection = LivingFolder.ChildRemoved:Connect(UpdateEntities)
+
+            while _G.Notifying do
+                task.wait()
+                UpdateEntities()
+            end
+        else
+            if addedConnection then
+                addedConnection:Disconnect()
+                addedConnection = nil
+            end
+            if removedConnection then
+                removedConnection:Disconnect()
+                removedConnection = nil
+            end
+        end
+    end,
+})
+
+
+
+_G.Notifying = false
+
+local Notify = workspace:FindFirstChild("NotifySoundNPC") or Instance.new("Sound", workspace)
+Notify.Name = "NotifySoundNPC"
+Notify.SoundId = "rbxassetid://84048283554136"
+Notify.Volume = 1
+Notify.Looped = false
+
+_G.NotifyingNPC = false
+
+local addedConnectionNPC, removedConnectionNPC
+local TrackedEntitiesNPC = {}
+
+local Toggle = Tab1:CreateToggle({
+    Name = "แจ้งเตือนNPC",
+    CurrentValue = false,
+    Flag = "Toggle1",
+    Callback = function(Value)
+        _G.NotifyingNPC = Value
+
+        if Value then
+            local LivingFolder = workspace.Map:FindFirstChild("NPCs")
+            if not LivingFolder then
+                warn("⚠️ ไม่พบ workspace.Living")
+                return
+            end
+    
+            local function UpdateEntities()
+                for _, v in pairs(LivingFolder:GetChildren()) do
+                    if v:IsA("Model") and v:FindFirstChild("Humanoid") and not TrackedEntitiesNPC[v] then
+                        TrackedEntitiesNPC[v] = true
+                        Rayfield:Notify({
+                            Title = "แจ้งเตือนการเกิดNPC",
+                            Content = v.Name,
+                            Duration = 5,
+                            Image = 4483362458,
+                        })
+                        Notify.TimePosition = 0
+                        Notify:Play()
+                    end
+                end
+            end
+    
+            UpdateEntities()
+
+            addedConnectionNPC = LivingFolder.ChildAdded:Connect(function(child)
+                task.wait()
+                UpdateEntities()
+            end)
+            
+            removedConnectionNPC = LivingFolder.ChildRemoved:Connect(function(child)
+                if TrackedEntitiesNPC[child] then
+                    TrackedEntitiesNPC[child] = nil
+                end
+            end)
+        else
+            if addedConnectionNPC then
+                addedConnectionNPC:Disconnect()
+                addedConnectionNPC = nil
+            end
+            if removedConnectionNPC then
+                removedConnectionNPC:Disconnect()
+                removedConnectionNPC = nil
+            end
+            TrackedEntitiesNPC = {}
+        end
+    end,
+})
+
 
 end
 
@@ -422,12 +570,35 @@ function Ui()
            end
         end,
      })
+end
 
+function Arcade()
+    _G.Gacha = false
 
-
+    local Toggle = Tab5:CreateToggle({
+        Name = "ตู้อาร์เขต",
+        CurrentValue = false,
+        Flag = "Toggle1",
+        Callback = function(Value)
+            _G.Gacha = Value
+            pcall(function()
+                while _G.Gacha do
+                    if not _G.Gacha then return end -- หยุดทันทีถ้าเป็น false
+                    task.wait(1.5)
+                    local args = {
+                        [1] = false,
+                        [2] = false
+                    }
+                    
+                    game:GetService("ReplicatedStorage"):WaitForChild("GlobalUsedRemotes"):WaitForChild("ArcadePurchase"):FireServer(unpack(args))
+                end
+            end)
+        end,
+    })
 end
 
 BoxFarm()
 AutoDead()
 Teleport()
 Ui()
+Arcade()
