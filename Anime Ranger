@@ -1,0 +1,22 @@
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Genesisuii/Genesisuii/refs/heads/main/Anti%20AFK%20script", true))()
+_G.D = true
+
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+
+while _G.D do
+    task.wait(0.5)
+	ReplicatedStorage.Remote.Server.OnGame.Voting.VotePlaying:FireServer()
+    ReplicatedStorage.Remote.Server.OnGame.Voting.VoteRetry:FireServer()
+
+    coroutine.wrap(function()
+        PlayerGui:WaitForChild("RewardsUI").Enabled = false
+    end)()
+
+    local endedUI = PlayerGui:FindFirstChild("GameEndedAnimationUI")
+    if endedUI then
+        endedUI:Destroy()
+    end
+end
