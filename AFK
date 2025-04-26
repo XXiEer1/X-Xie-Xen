@@ -1,0 +1,85 @@
+task.wait(8)
+
+function Start()
+    while true do
+        task.wait(2)
+    
+        local args = {
+            [1] = {
+                ["5"] = {
+                    [1] = {
+                        [1] = {
+                            ["rotation"] = 0,
+                            ["uid"] = "588515ea6",
+                            ["position"] = Vector3.new(72.12152862548828, -8.206954002380371, -194.296875)
+                        },
+                        ["n"] = 1
+                    }
+                }
+            },
+            [2] = {}
+        }
+        
+        game:GetService("ReplicatedStorage"):WaitForChild("ReliableRedEvent"):FireServer(unpack(args))
+        
+        local args = {
+            [1] = {
+                ["5"] = {
+                    [1] = {
+                        [1] = {
+                            ["rotation"] = 0,
+                            ["uid"] = "588515ea6",
+                            ["position"] = Vector3.new(76.47737884521484, -8.206954002380371, -194.71157836914062)
+                        },
+                        ["n"] = 1
+                    }
+                }
+            },
+            [2] = {}
+        }
+        
+        game:GetService("ReplicatedStorage"):WaitForChild("ReliableRedEvent"):FireServer(unpack(args))
+        
+        
+        local args = {
+            [1] = {
+                ["?"] = {
+                    [1] = {
+                        ["n"] = 0
+                    }
+                }
+            },
+            [2] = {}
+        }
+        
+        game:GetService("ReplicatedStorage"):WaitForChild("ReliableRedEvent"):FireServer(unpack(args))
+    end
+
+    spawn(function()
+        local min = 0
+        local max = 100
+        repeat
+            task.wait(3)
+            for _, UPG in pairs(workspace.towers:GetChildren()) do
+                local args = {
+                [1] = {
+                    ["9"] = {
+                        [1] = {
+                            [1] = tostring(UPG),
+                            ["n"] = 1
+                        }
+                    }
+                },
+                [2] = {}
+            }
+            
+            game:GetService("ReplicatedStorage"):WaitForChild("ReliableRedEvent"):FireServer(unpack(args))
+            min += 1
+            end
+        until min == max
+    end)
+
+end
+
+
+Start()
