@@ -1,4 +1,3 @@
-warn("Start!!)
 task.wait(8)
 
 function Start()
