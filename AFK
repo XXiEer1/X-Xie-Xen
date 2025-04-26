@@ -1,6 +1,31 @@
 task.wait(8)
 
 function Start()
+
+    spawn(function()
+        local min = 0
+        local max = 100000
+        repeat
+            task.wait(3)
+            for _, UPG in pairs(workspace.towers:GetChildren()) do
+                local args = {
+                [1] = {
+                    ["9"] = {
+                        [1] = {
+                            [1] = tostring(UPG),
+                            ["n"] = 1
+                        }
+                    }
+                },
+                [2] = {}
+            }
+            
+            game:GetService("ReplicatedStorage"):WaitForChild("ReliableRedEvent"):FireServer(unpack(args))
+            min += 1
+            end
+        until min == max
+    end)
+
     while true do
         task.wait(2)
     
@@ -55,29 +80,7 @@ function Start()
         game:GetService("ReplicatedStorage"):WaitForChild("ReliableRedEvent"):FireServer(unpack(args))
     end
 
-    spawn(function()
-        local min = 0
-        local max = 100
-        repeat
-            task.wait(3)
-            for _, UPG in pairs(workspace.towers:GetChildren()) do
-                local args = {
-                [1] = {
-                    ["9"] = {
-                        [1] = {
-                            [1] = tostring(UPG),
-                            ["n"] = 1
-                        }
-                    }
-                },
-                [2] = {}
-            }
-            
-            game:GetService("ReplicatedStorage"):WaitForChild("ReliableRedEvent"):FireServer(unpack(args))
-            min += 1
-            end
-        until min == max
-    end)
+    
 
 end
 
